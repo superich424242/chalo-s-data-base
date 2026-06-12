@@ -1,5 +1,6 @@
 номера,вк,и почты|number.txt
 родня|rod.txt
+адреса|adress.txt
 бизнес|biznes.txt
 покупки, услуги и магазы|buy.txt
 соцсети (обновы в будущем)|site.txt
