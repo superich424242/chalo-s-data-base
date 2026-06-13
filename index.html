@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Chalo's data base</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0f1e 0%, #0c1222 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 650px;
+            background: rgba(18, 25, 45, 0.75);
+            backdrop-filter: blur(4px);
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(72, 187, 255, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #0f172f;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            border-bottom: 1px solid #2d3a5e;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(120deg, #c0e0ff, #7aa9ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .header p {
+            color: #8a9bcf;
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+
+        .card {
+            padding: 2rem 1.8rem;
+            background: #0f1422cc;
+        }
+
+        .login-box {
+            transition: all 0.25s;
+        }
+
+        .input-group {
+            margin-bottom: 1.3rem;
+        }
+
+        label {
+            display: block;
+            color: #b9ceff;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            background: #0b0f1c;
+            border: 1px solid #293458;
+            border-radius: 1.2rem;
+            font-size: 1rem;
+            color: #eef4ff;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #4a80f0;
+            box-shadow: 0 0 0 3px rgba(74, 128, 240, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            border: none;
+            padding: 0.85rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(95deg, #2b4b9e, #1e3a8a);
+            box-shadow: 0 5px 12px rgba(0, 20, 80, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(95deg, #3567c0, #264b9e);
+            transform: scale(0.98);
+        }
+
+        .error-msg {
+            background: rgba(220, 38, 38, 0.15);
+            border-left: 4px solid #ef4444;
+            color: #ffb3b3;
+            padding: 0.7rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .loading-msg {
+            background: rgba(52, 152, 219, 0.2);
+            border-left: 4px solid #3498db;
+            color: #aac9ff;
+            padding: 0.7rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .protected-area {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .welcome-badge {
+            background: #10192ec9;
+            border-radius: 1.8rem;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .user-info {
+            font-weight: 600;
+            color: #b9d0ff;
+            background: #00000033;
+            padding: 0.3rem 0.8rem;
+            border-radius: 2rem;
+        }
+
+        .logout-btn {
+            background: #331f2c;
+            border: none;
+            padding: 0.4rem 1.2rem;
+            border-radius: 2rem;
+            color: #ffbcb0;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background: #4f2c3c;
+            color: white;
+        }
+
+        .folder-path {
+            background: #0b0f1c;
+            border-radius: 1rem;
+            padding: 0.5rem 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            color: #7aa9ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .folder-path span {
+            color: #8a9bcf;
+        }
+
+        .folder-path code {
+            background: #00000055;
+            padding: 0.2rem 0.6rem;
+            border-radius: 1rem;
+            font-family: monospace;
+        }
+
+        .buttons-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .file-btn {
+            background: #2a3a66;
+            border: none;
+            padding: 0.9rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 2rem;
+            color: #f0f4ff;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-btn:hover {
+            background: #3f5290;
+            transform: translateY(-2px);
+        }
+
+        .text-viewer {
+            background: #0c1022e0;
+            border-radius: 1.5rem;
+            border: 1px solid #2c3f6e;
+            padding: 1.2rem;
+            margin-top: 0;
+            display: none;
+        }
+
+        .text-viewer.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .text-viewer-content {
+            color: #c2dcff;
+            line-height: 1.55;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            border-left: 3px solid #4f7df3;
+            padding-left: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        footer {
+            padding: 0.9rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #4d5c86;
+            background: #080c17;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <h1>📀 Chalo's data base</h1>
+        <p>🔐 авторизация · тексты из папки /texts</p>
+    </div>
+    <div class="card">
+        <div id="loginSection" class="login-box">
+            <div class="input-group">
+                <label>👤 Логин</label>
+                <input type="text" id="loginInput" placeholder="Введите логин" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>🔒 Пароль</label>
+                <input type="password" id="passwordInput" placeholder="Введите пароль">
+            </div>
+            <button id="loginBtn" class="btn btn-primary">🚪 Войти</button>
+            <div id="loginErrorMsg" class="error-msg" style="display: none;"></div>
+            <div id="loginLoadingMsg" class="loading-msg" style="display: none;">⏳ Загрузка...</div>
+        </div>
+
+        <div id="protectedArea" class="protected-area">
+            <div class="welcome-badge">
+                <span>✅ Добро пожаловать, <strong id="currentUsername">—</strong>!</span>
+                <button id="logoutButton" class="logout-btn">🚪 Выйти</button>
+            </div>
+
+            <div class="folder-path">
+                <span>📁 Папка с текстами:</span>
+                <code id="currentFolderPath">/texts</code>
+            </div>
+
+            <div class="buttons-panel" id="buttonsPanel"></div>
+
+            <div id="textViewer" class="text-viewer">
+                <div id="textViewerContent" class="text-viewer-content"></div>
+            </div>
+        </div>
+    </div>
+    <footer>Текстовые файлы загружаются из папки /texts</footer>
+</div>
+
+<script>
+    (function() {
+        // ============================================================
+        // ЖЁСТКО ПРОПИСАННЫЕ ПАРОЛИ (ВСЕ ПАРЫ ИЗ users.txt)
+        // ТЕПЕРЬ ЭТОТ СПИСОК РАБОТАЕТ ВСЕГДА, ДАЖЕ БЕЗ ФАЙЛА
+        // ============================================================
+        const HARDCODED_USERS = {
+            "NeonCGsigmapokoyoGames": "7xK9mP2",
+            "Major": "R4tY8wQ3",
+            "sigeonpex": "Z5nH1vB6",
+            "grisha228": "F2cL9uA7",
+            "KartelKartelovich": "W8jG3sD4",
+            "Akula998pokoyo": "M6qE2rX5",
+            "Art1k": "Yh3Km9x",
+            "sup3rich": "X8vK2mQ"
+        };
+        
+        // ============================================================
+        // НАСТРОЙКИ
+        // ============================================================
+        const TEXTS_FOLDER = 'texts';
+        const BUTTONS_FILE = 'buttons.txt';
+        const USERS_FILE = 'users.txt';
+        // ============================================================
+        
+        let credentialsMap = new Map();
+        let usersLoaded = false;
+        let isLoggedIn = false;
+        let activeUser = null;
+        let buttonsList = [];
+        
+        const loginSection = document.getElementById('loginSection');
+        const protectedArea = document.getElementById('protectedArea');
+        const loginInput = document.getElementById('loginInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginErrorMsg = document.getElementById('loginErrorMsg');
+        const loginLoadingMsg = document.getElementById('loginLoadingMsg');
+        const logoutButton = document.getElementById('logoutButton');
+        const currentUsernameSpan = document.getElementById('currentUsername');
+        const buttonsPanel = document.getElementById('buttonsPanel');
+        const textViewer = document.getElementById('textViewer');
+        const textViewerContent = document.getElementById('textViewerContent');
+        const currentFolderPathSpan = document.getElementById('currentFolderPath');
+        
+        currentFolderPathSpan.textContent = `/${TEXTS_FOLDER}`;
+        
+        async function loadTxtFile(path) {
+            const response = await fetch(path);
+            if (!response.ok) {
+                throw new Error(`Не удалось загрузить ${path}: ${response.status}`);
+            }
+            return await response.text();
+        }
+        
+        async function loadUsersFromFile() {
+            try {
+                const content = await loadTxtFile(USERS_FILE);
+                const map = new Map();
+                const lines = content.split(/\r?\n/);
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (trimmed === '' || trimmed.startsWith('#')) continue;
+                    const colonIndex = trimmed.indexOf(':');
+                    if (colonIndex > 0) {
+                        const login = trimmed.substring(0, colonIndex).trim();
+                        const password = trimmed.substring(colonIndex + 1).trim();
+                        if (login && password) {
+                            map.set(login, password);
+                        }
+                    }
+                }
+                return map;
+            } catch (error) {
+                console.error('Ошибка загрузки users.txt:', error);
+                return new Map();
+            }
+        }
+        
+        async function loadButtonsFromFile() {
+            try {
+                const content = await loadTxtFile(BUTTONS_FILE);
+                const buttons = [];
+                const lines = content.split(/\r?\n/);
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (trimmed === '' || trimmed.startsWith('#')) continue;
+                    const pipeIndex = trimmed.indexOf('|');
+                    if (pipeIndex > 0) {
+                        const buttonName = trimmed.substring(0, pipeIndex).trim();
+                        let fileName = trimmed.substring(pipeIndex + 1).trim();
+                        const fullPath = `${TEXTS_FOLDER}/${fileName}`;
+                        if (buttonName && fileName) {
+                            buttons.push({ name: buttonName, filePath: fullPath, fileName: fileName });
+                        }
+                    }
+                }
+                return buttons;
+            } catch (error) {
+                console.error('Ошибка загрузки buttons.txt:', error);
+                return [];
+            }
+        }
+        
+        async function loadAndShowText(filePath, buttonName) {
+            textViewerContent.textContent = '⏳ Загрузка текста...';
+            textViewer.classList.add('show');
+            try {
+                const content = await loadTxtFile(filePath);
+                textViewerContent.textContent = content;
+            } catch (error) {
+                textViewerContent.textContent = `❌ Ошибка загрузки файла "${filePath}":\n${error.message}\n\nУбедитесь, что файл существует в папке /${TEXTS_FOLDER}`;
+            }
+        }
+        
+        function renderButtons() {
+            buttonsPanel.innerHTML = '';
+            if (buttonsList.length === 0) {
+                buttonsPanel.innerHTML = '<div class="error-msg" style="text-align:center;">Нет доступных кнопок. Проверьте buttons.txt</div>';
+                return;
+            }
+            for (const btn of buttonsList) {
+                const button = document.createElement('button');
+                button.className = 'file-btn';
+                button.innerHTML = `📄 ${escapeHtml(btn.name)}`;
+                button.addEventListener('click', () => {
+                    loadAndShowText(btn.filePath, btn.name);
+                });
+                buttonsPanel.appendChild(button);
+            }
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        function showError(msg) {
+            loginErrorMsg.style.display = 'block';
+            loginErrorMsg.textContent = msg;
+            loginLoadingMsg.style.display = 'none';
+        }
+        
+        function hideError() {
+            loginErrorMsg.style.display = 'none';
+        }
+        
+        // === ОСНОВНАЯ ФУНКЦИЯ ВХОДА (сначала проверяет жёсткие, потом users.txt) ===
+        async function performLogin() {
+            const login = loginInput.value.trim();
+            const password = passwordInput.value;
+            
+            if (!login || !password) {
+                showError("❌ Заполните логин и пароль");
+                return;
+            }
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = "⏳ Проверка...";
+            loginLoadingMsg.style.display = 'block';
+            hideError();
+            
+            let loginSuccess = false;
+            
+            // 1. ПРОВЕРКА ПО ЖЁСТКОЙ ТАБЛИЦЕ (РАБОТАЕТ ВСЕГДА)
+            if (HARDCODED_USERS[login] && HARDCODED_USERS[login] === password) {
+                loginSuccess = true;
+            }
+            
+            // 2. ЕСЛИ НЕ НАШЛОСЬ - ПРОВЕРКА ЧЕРЕЗ users.txt
+            if (!loginSuccess) {
+                try {
+                    if (!usersLoaded) {
+                        credentialsMap = await loadUsersFromFile();
+                        usersLoaded = true;
+                    }
+                    if (credentialsMap.has(login) && credentialsMap.get(login) === password) {
+                        loginSuccess = true;
+                    }
+                } catch (error) {
+                    console.warn('Ошибка при загрузке users.txt, но жёсткие пароли продолжают работать');
+                }
+            }
+            
+            loginLoadingMsg.style.display = 'none';
+            
+            if (loginSuccess) {
+                activeUser = login;
+                isLoggedIn = true;
+                currentUsernameSpan.textContent = activeUser;
+                
+                buttonsList = await loadButtonsFromFile();
+                renderButtons();
+                
+                textViewer.classList.remove('show');
+                textViewerContent.textContent = '';
+                
+                loginSection.style.display = "none";
+                protectedArea.style.display = "block";
+            } else {
+                showError("❌ Неверный логин или пароль.");
+            }
+            
+            loginBtn.disabled = false;
+            loginBtn.textContent = "🚪 Войти";
+        }
+        
+        function logout() {
+            isLoggedIn = false;
+            activeUser = null;
+            loginSection.style.display = "block";
+            protectedArea.style.display = "none";
+            loginInput.value = "";
+            passwordInput.value = "";
+            hideError();
+            textViewer.classList.remove('show');
+            textViewerContent.textContent = '';
+        }
+        
+        loginBtn.addEventListener('click', performLogin);
+        logoutButton.addEventListener('click', logout);
+        
+        loginInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performLogin(); });
+        // ИСПРАВЛЕНО: была пропущена стрелка в этой строке
+        passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performLogin(); });
+        
+        loginSection.style.display = "block";
+        protectedArea.style.display = "none";
+    })();
+</script>
+</body>
+</html>
