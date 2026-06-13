@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Chalo's data base</title>
+    <style>
+        body {
+            background: #0a0f1e;
+            font-family: system-ui;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .box {
+            background: #0f172f;
+            padding: 30px;
+            border-radius: 32px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #c0e0ff;
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #0b0f1c;
+            border: 1px solid #2a3a66;
+            border-radius: 20px;
+            color: white;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #2b4b9e;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #1e3a8a;
+        }
+        .error {
+            color: #ff8a8a;
+            background: #44000055;
+            padding: 10px;
+            border-radius: 16px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .welcome {
+            background: #10192e;
+            padding: 12px;
+            border-radius: 28px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .btn-list button {
+            margin: 6px 0;
+            background: #2a3a66;
+        }
+        .text-view {
+            background: #0c1022;
+            border-radius: 20px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #c2dcff;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .text-view.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h1>📀 Chalo's data base</h1>
+
+    <!-- Форма входа -->
+    <div id="loginSection">
+        <input type="text" id="loginInput" placeholder="Логин">
+        <input type="password" id="passwordInput" placeholder="Пароль">
+        <button id="loginBtn">Войти</button>
+        <div id="errorMsg" class="error" style="display: none;"></div>
+    </div>
+
+    <!-- Контент после входа -->
+    <div id="contentSection" style="display: none;">
+        <div class="welcome">
+            <span>✅ Добро пожаловать, <strong id="userName"></strong>!</span>
+            <button id="logoutBtn" style="width: auto; background:#331f2c;">Выйти</button>
+        </div>
+        <div id="buttonsPanel" class="btn-list"></div>
+        <div id="textPanel" class="text-view">
+            <div id="textContent"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== ВСЕ ПОЛЬЗОВАТЕЛИ (жёстко) ====================
+    const USERS = {
+        "NeonCGsigmapokoyoGames": "7xK9mP2",
+        "Major": "R4tY8wQ3",
+        "sigeonpex": "Z5nH1vB6",
+        "grisha228": "F2cL9uA7",
+        "KartelKartelovich": "W8jG3sD4",
+        "Akula998pokoyo": "M6qE2rX5",
+        "Art1k": "Yh3Km9x",
+        "sup3rich": "X8vK2mQ"
+    };
+
+    // Загрузка кнопок из buttons.txt
+    async function getButtons() {
+        try {
+            const res = await fetch("buttons.txt");
+            if (!res.ok) return [];
+            const text = await res.text();
+            const lines = text.split("\n");
+            const btns = [];
+            for (let line of lines) {
+                line = line.trim();
+                if (line && line.includes("|")) {
+                    let [name, file] = line.split("|");
+                    btns.push({ name: name.trim(), file: file.trim() });
+                }
+            }
+            return btns;
+        } catch(e) {
+            return [];
+        }
+    }
+
+    // Загрузка текста из папки texts/
+    async function getText(filename) {
+        try {
+            const res = await fetch(`texts/${filename}`);
+            if (!res.ok) return `❌ Файл texts/${filename} не найден`;
+            return await res.text();
+        } catch(e) {
+            return `❌ Ошибка загрузки texts/${filename}`;
+        }
+    }
+
+    // Показать текст при нажатии на кнопку
+    async function showFile(filename) {
+        const panel = document.getElementById("textPanel");
+        const contentDiv = document.getElementById("textContent");
+        contentDiv.innerText = "⏳ Загрузка...";
+        panel.classList.add("show");
+        const text = await getText(filename);
+        contentDiv.innerText = text;
+    }
+
+    // Создать кнопки
+    async function buildButtons() {
+        const buttons = await getButtons();
+        const container = document.getElementById("buttonsPanel");
+        container.innerHTML = "";
+        if (buttons.length === 0) {
+            container.innerHTML = '<div class="error">Нет кнопок. Проверьте buttons.txt</div>';
+            return;
+        }
+        for (let btn of buttons) {
+            const btnEl = document.createElement("button");
+            btnEl.innerText = `📄 ${btn.name}`;
+            btnEl.onclick = () => showFile(btn.file);
+            container.appendChild(btnEl);
+        }
+    }
+
+    // Вход
+    async function login() {
+        const login = document.getElementById("loginInput").value.trim();
+        const pass = document.getElementById("passwordInput").value;
+        const errorDiv = document.getElementById("errorMsg");
+
+        if (!login || !pass) {
+            errorDiv.innerText = "❌ Заполните логин и пароль";
+            errorDiv.style.display = "block";
+            return;
+        }
+
+        if (USERS[login] && USERS[login] === pass) {
+            errorDiv.style.display = "none";
+            document.getElementById("userName").innerText = login;
+            document.getElementById("loginSection").style.display = "none";
+            document.getElementById("contentSection").style.display = "block";
+            await buildButtons();
+            document.getElementById("textPanel").classList.remove("show");
+        } else {
+            errorDiv.innerText = "❌ Неверный логин или пароль";
+            errorDiv.style.display = "block";
+        }
+    }
+
+    // Выход
+    function logout() {
+        document.getElementById("loginSection").style.display = "block";
+        document.getElementById("contentSection").style.display = "none";
+        document.getElementById("loginInput").value = "";
+        document.getElementById("passwordInput").value = "";
+        document.getElementById("textPanel").classList.remove("show");
+        document.getElementById("errorMsg").style.display = "none";
+    }
+
+    // Навешиваем события
+    document.getElementById("loginBtn").onclick = login;
+    document.getElementById("logoutBtn").onclick = logout;
+    document.getElementById("loginInput").onkeypress = (e) => { if (e.key === "Enter") login(); };
+    document.getElementById("passwordInput").onkeypress = (e) => { if (e.key === "Enter") login(); };
+</script>
+</body>
+</html>
